@@ -1,66 +1,168 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Basic Setup Laravel Inertia
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+### Version Information
 
-## About Laravel
+-   Laravel 10
+-   Node 20.14.0
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Notes
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+-   Before it starts, make sure you have installed the Laravel and Node in your system. If you don't have it, you can install it by following the instructions in the [Laravel](https://laravel.com/docs/10.x/installation) and [Node](https://nodejs.org/en/download/) documentation.
+-   Open split terminal in this project for running node server and laravel server
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Steps
 
-## Learning Laravel
+1.  Create a new Laravel project
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+    ```sh
+    composer create-project laravel/laravel example-app
+    ```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+2.  Server Side Setup Inertia
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+    -   Install Inertia
+        ```sh
+        composer require inertiajs/inertia-laravel
+        ```
+    -   Create [app.blade.php](/resources/views/app.blade.php) in resources/views/, and add the following code
+        ```html
+        <!DOCTYPE html>
+        <html>
+            <head>
+                <meta charset="utf-8" />
+                <meta
+                    name="viewport"
+                    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+                />
+                @vite('resources/js/app.js') @inertiaHead
+            </head>
+            <body>
+                @inertia
+            </body>
+        </html>
+        ```
+    -   Publishing inertia middleware
+        ```sh
+        php artisan inertia:middleware
+        ```
+    -   Append HandleInertiaRequests middleware to the web middleware group, in Laravel 10, it is located in [Kernel.php](/app/Http/Kernel.php)
 
-## Laravel Sponsors
+        ```php
+        // app/Http/Kernel.php
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+        protected $middlewareGroups = [
+            'web' => [
+                // ...
+                \App\Http\Middleware\HandleInertiaRequests::class,
+            ],
+        ];
+        ```
 
-### Premium Partners
+3.  Client Side Inertia Setup
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+    -   Install Inertia
+        ```sh
+        npm install @inertiajs/inertia @inertiajs/vue3
+        ```
+    -   modify [app.js](/resources/js/app.js) in resources/js/
 
-## Contributing
+        ```js
+        import { createApp, h } from "vue";
+        import { createInertiaApp } from "@inertiajs/vue3";
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+        createInertiaApp({
+            resolve: (name) => {
+                const pages = import.meta.glob("./Pages/**/*.vue", {
+                    eager: true,
+                });
+                return pages[`./Pages/${name}.vue`];
+            },
+            setup({ el, App, props, plugin }) {
+                createApp({ render: () => h(App, props) })
+                    .use(plugin)
+                    .mount(el);
+            },
+        });
+        ```
 
-## Code of Conduct
+    -   Install Vue Plugin for Vite and vue
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+        ```sh
+        npm install @vitejs/plugin-vue vue
+        ```
 
-## Security Vulnerabilities
+    -   Modify [vite.config.js](/vite.config.js)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+        ```js
+        import { defineConfig } from "vite";
+        import laravel from "laravel-vite-plugin";
+        import vue from "@vitejs/plugin-vue";
 
-## License
+        export default defineConfig({
+            plugins: [
+                vue(),
+                laravel({
+                    input: ["resources/css/app.css", "resources/js/app.js"],
+                    refresh: true,
+                }),
+            ],
+        });
+        ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+4.  Create Pages in resources/js/Pages/
+
+    -   [Home.vue](/resources/js/Pages/Home.vue)
+
+        ```js
+        <template>
+            <div>
+                <h1>My Inertia Index</h1>
+                <Link href="/about">About</Link>
+            </div>
+        </template>
+
+        <script setup>
+        import { Link } from "@inertiajs/vue3";
+        </script>
+        ```
+
+    -   [About.vue](/resources/js/Pages/About.vue)
+
+        ```js
+        <template>
+            <div>
+                <h1>About</h1>
+                <Link href="/">Home</Link>
+            </div>
+        </template>
+
+        <script setup>
+        import { Link } from "@inertiajs/vue3";
+        </script>
+        ```
+
+5.  Update [routes/web.php](/routes/web.php)
+
+    ```php
+    use Inertia\Inertia;
+
+    Route::get('/', function () {
+        return Inertia::render('Index');
+    });
+
+    Route::get('/about', function () {
+        return Inertia::render('About');
+    });
+    ```
+
+6.  Run node server
+
+    ```sh
+    npm run dev
+    ```
+
+7.  Run Laravel Server
+
+    ```sh
+    php artisan serve
+    ```
