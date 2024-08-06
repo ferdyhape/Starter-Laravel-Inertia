@@ -1,4 +1,4 @@
-# Basic Setup Laravel Inertia
+# Basic Setup Laravel Inertia Using Vue 3
 
 ### Version Information
 
